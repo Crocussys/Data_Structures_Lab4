@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include "node.h"
+#include "myvector.h"
 
 using namespace std;
 
@@ -11,17 +12,16 @@ void usage()
     cout << endl << "Error: Not enough arguments" << endl;
 }
 
-Node* newNode(int** array, int nodeID, int lvl = 0)  // Перенос информации из массива в объект
+Node* newNode(int** array, int nodeID)  // Перенос информации из массива в объект
 {
     Node* node = new Node;
     int* int_node = array[nodeID];
     node->setId(nodeID);
-    node->selLevel(lvl);
     int len = int_node[0];
     node->setNumber(int_node[1]);
     for (int i = 2; i < len; i++){
         int soneId = int_node[i];
-        Node* son = newNode(array, soneId, lvl + 1);
+        Node* son = newNode(array, soneId);
         node->add_Son(son);
     }
     return node;
@@ -58,51 +58,21 @@ Node* inFile(fstream& file)
     return root;                                   // И возвращаем ссылку на корень
 }
 
-int search(Node* node, int lvl = 0, int min = -1){
-    int count = node->getCount_sons();
-    if (count == 0){
-        return lvl;
-    }else{
-        Node** sons = node->getSons();
-        for (int i = 0; i < count; i++){
-            son_lvl                                       // Чё я делаю...
-        }
-        if (min == -1){
-            return lvl;
-        }else{
-            if (min > lvl){
-                return lvl;
-            }else{
-                return min;
+void del(Node* node, MyVector dels){
+    Node** sons = node->getSons();
+    for (int i = 0; i < node->getCount_sons(); i++){
+        Node* son = sons[i];
+        for (int j = 0; j < dels.get_size(); j++){
+            int id = dels.get_element(j)->getId();
+            if (son->getId() == id){
+                node->remove_Son(id);
+                dels.erase(id);
+                break;
             }
         }
+        del(son, dels);
     }
 }
-
-//MyVector search(Node node)
-//{
-//    Node* left_node = node.getLeft();
-//    Node* right_node = node.getRight();
-//    MyVector left_path = MyVector();
-//    MyVector right_path = MyVector();
-//    MyVector ans = MyVector();
-//    if (node.getNumber() % 2 == 0){        // Проверка на нечётность по заданию
-//        return ans;
-//    }
-//    if (left_node != nullptr){             // Рекурсивный поиск вглубь слева
-//        left_path = search(*left_node);
-//    }
-//    if (right_node != nullptr){            // и справа
-//        right_path = search(*right_node);
-//    }
-//    if (left_path.get_size() >= right_path.get_size()){  // Выбираем длинный путь
-//        ans = left_path;
-//    }else{
-//        ans = right_path;
-//    }
-//    ans.push_back(node);  // Добавляем себя
-//    return ans;           // Передаём этот путь вверх по дереву
-//}
 
 int main(int argc, char* argv[])
 {
@@ -118,13 +88,32 @@ int main(int argc, char* argv[])
     Node* tree = inFile(file);       // Считываем дерево из файла
     file.close();
     tree->print();                   // Выведем для проверки
+    cout << "sd\n" ;
+
+    cout << "\n"<< flush << endl << endl;
+    MyVector strm;
+    strm.push_back(tree);
+    int i = 0;
+    int count = strm.get_size();
+    bool flag = false;
+    MyVector del_ids;
+    while (i < strm.get_size()){
+        if (flag and i == count) {
+            break;
+        }
+        Node* node = strm.get_element(i);
+        if (node->getCount_sons() == 0){
+            flag = true;
+            del_ids.push_back(node);
+        }
+        Node** sons = node->getSons();
+        for (int j = 0; j < node->getCount_sons(); j++){
+            strm.push_back(sons[j]);
+        }
+        i++;
+    }
+    del(tree, del_ids);
+    tree->print();
     cout << endl << endl;
-//    MyVector path = search(*tree);   // Ищем нужный путь
-//    cout << "root";                  // Далее вывод результатов на экран
-//    int len = path.get_size() - 1;
-//    for (int i = len; i >= 0; i--){
-//        cout << " -> " << path.get_element(i).getNumber();
-//    }
-//    cout << endl << "Длина максимального пути: " << len << endl;
     return 0;
 }

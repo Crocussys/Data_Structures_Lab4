@@ -7,9 +7,6 @@ Node::Node()
     count_sons = 0;
     sons = nullptr;
 }
-Node::~Node(){
-    delete [] sons;
-}
 int Node::getId()
 {
     return id;
@@ -46,8 +43,38 @@ void Node::add_Son(Node* node){
     sons[count_sons - 1] = node;
     delete [] temp;
 }
+bool Node::remove_Son(int id){
+    for (int i = 0; i < count_sons; i++){
+        if (sons[i]->getId() == id){
+            Node** temp = new Node* [count_sons];
+            for (int j = 0; j < count_sons; j++){
+                temp[j] = sons[j];
+            }
+            delete [] sons;
+            count_sons--;
+            sons = new Node* [count_sons];
+            bool flag = false;
+            for (int j = 0; j < count_sons + 1; j++){
+                if (temp[j]->getId() == id){
+                    flag = true;
+                    continue;
+                }
+                if (flag){
+                    sons[j - 1] = temp[j];
+                }else{
+                    sons[j] = temp[j];
+                }
+            }
+            delete [] temp;
+            return true;
+        }
+    }
+    return false;
+}
 void Node::print(int step)
 {
+    if (id == -1)
+        return;
     int new_step = step + 4;  // Вычисляем отступ
     float n = number;
     while (n >= 1){
